@@ -11,17 +11,33 @@
       <input type="email" v-model="email" @blur="validateEmail" /><br>
       <p v-if="errors.email" style="color:red">{{ errors.email }}</p>
 
-      <button type="submit">Submit</button>
-      <a href="https://www.facebook.com/login/identify/?ci=Ac9rxbPsX_KLfD9S-3RDIi-g4oOp3Z_iKkJbqBfSJZmFwI6AilbVJAu5SPptxCPFjJ2bkWQ0cFBhybJZAn8tycUneyJKUE22AwczslwbDbqfZNFSJB4zOKvAZEQcy8n94tG3Fe2XpMgASv2A8v0MsZZh9YmYeNsl8czJMXrGgmRvGUFBG-4wTguNhlbjmJa5brdxfgIzC8eSTfrpXMUG8UjZ3LQUGOcdYjnRTPnvN0nDHu9I3l8Wqrmram7tH37wCaTBcN37zkfXLD1b_uhRqVhmzbQ">forgotpassword</a>
+      <button type="submit">Submit</button><br><br><br>
     </form>
 
-    <div v-if="users">
-      
-      <ul class="list">
-        <li v-for="(user, index) in users" :key="index">
-          {{ index + 1 }}, {{ user.name }}, {{ user.email }}
-        </li>
-      </ul>
+    <hr />
+
+    <div v-if="users.length">
+      <table border="1" cellpadding="10">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(user, index) in users" :key="index">
+            <td>{{ index + 1 }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <button @click="editUser(index)">Edit</button>
+              <button @click="deleteUser(index)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -32,35 +48,66 @@ export default {
     return {
       name: "",
       email: "",
+      editIndex: null,
+      users: [],
       errors: {
         name: "",
         email: ""
-      },
-      users: [] 
+      }
     };
   },
+
   methods: {
     validateName() {
-      this.errors.name = this.name.trim() == "" ? "Enter your name" : "";
+      this.errors.name = this.name.trim() === "" ? "Enter your name" : "";
     },
+
     validateEmail() {
-      this.errors.email = this.email.trim() == "" ? "Enter your email" : "";
+       this.errors.email = this.name.trim() ==="" ? "Enter your email" : "";
     },
+
     submitForm() {
       this.validateName();
       this.validateEmail();
 
       if (!this.errors.name && !this.errors.email) {
-        
-        this.users.push({
-          name: this.name.trim(),
-          email: this.email.trim()
-        });
+        const emailExists = this.users.some(
+          (user, index) =>
+            user.email === this.email.trim() &&
+            index !== this.editIndex
+        );
 
-        
+        if (emailExists) {
+          this.errors.email = "Email already exists!";
+          return;
+        }
+
+        if (this.editIndex === null) {
+          this.users.push({
+            name: this.name.trim(),
+            email: this.email.trim()
+          });
+        } else {
+          this.users[this.editIndex] = {
+            name: this.name.trim(),
+            email: this.email.trim()
+          };
+          this.editIndex = null;
+        }
+
         this.name = "";
         this.email = "";
       }
+    },
+
+    editUser(index) {
+      this.name = this.users[index].name;
+      this.email = this.users[index].email;
+      this.editIndex = index;
+    },
+
+    deleteUser(index) {
+      this.users.splice(index, 1);
     }
   }
 };
